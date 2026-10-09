@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eef1ed">
+  <meta name="description" content="Mahu — immersive peace and mindfulness experience.">
+  <title>Mahu</title>
+  <link rel="preload" as="image" href="assets/reference-design.jpg">
+  <style>
+    :root { --bg:#eef1ed; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; background:var(--bg); }
+    body {
+      margin:0;
+      background:var(--bg);
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+    }
+
+    /* The supplied artwork is kept as the visual source so its typography,
+       spacing, imagery and proportions are not recreated or substituted. */
+    .page {
+      min-height:100vh;
+      position:relative;
+      display:flex;
+      justify-content:center;
+      background:var(--bg);
+    }
+
+    .art-wrap {
+      position:relative;
+      width:min(100vw, 1100px);
+      isolation:isolate;
+      overflow:hidden;
+    }
+
+    .art {
+      display:block;
+      width:100%;
+      height:auto;
+      transform:translate3d(0,0,0) scale(1);
+      transform-origin:center top;
+      will-change:transform,opacity;
+      opacity:0;
+      animation:enter 1.2s cubic-bezier(.2,.7,.2,1) .08s forwards;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+
+    /* Very subtle motion layer: animation without altering the supplied design. */
+    .ambient {
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:2;
+      mix-blend-mode:screen;
+      opacity:.20;
+    }
+    .ambient::before,
+    .ambient::after {
+      content:"";
+      position:absolute;
+      width:34vw;
+      height:34vw;
+      min-width:180px;
+      min-height:180px;
+      max-width:420px;
+      max-height:420px;
+      border-radius:50%;
+      filter:blur(50px);
+      background:radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 68%);
+      animation:drift 12s ease-in-out infinite alternate;
+    }
+    .ambient::before { left:-12%; top:9%; }
+    .ambient::after { right:-14%; top:47%; animation-delay:-5s; animation-duration:15s; }
+
+    .progress {
+      position:fixed;
+      top:0; left:0;
+      height:2px;
+      width:0;
+      background:rgba(255,255,255,.8);
+      z-index:10;
+      box-shadow:0 0 10px rgba(255,255,255,.55);
+    }
+
+    .brand {
+      position:fixed;
+      right:16px;
+      bottom:14px;
+      z-index:9;
+      font:500 11px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      letter-spacing:.18em;
+      color:rgba(255,255,255,.58);
+      mix-blend-mode:difference;
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    @keyframes enter {
+      from { opacity:0; transform:translate3d(0,18px,0) scale(1.008); }
+      to   { opacity:1; transform:translate3d(0,0,0) scale(1); }
+    }
+    @keyframes drift {
+      0%   { transform:translate3d(-3%, -1%, 0) scale(.96); }
+      100% { transform:translate3d(9%, 7%, 0) scale(1.08); }
+    }
+
+    @media (min-width:900px) {
+      .page { padding:28px 0; }
+      .art-wrap {
+        box-shadow:0 30px 100px rgba(22,44,40,.12);
+        border-radius:2px;
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      html { scroll-behavior:auto; }
+      .art { animation:none; opacity:1; }
+      .ambient::before,.ambient::after { animation:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <main class="page" aria-label="Mahu website">
+    <div class="art-wrap">
+      <img class="art" id="art" src="assets/reference-design.jpg"
+           alt="Mahu immersive mindfulness website design"
+           draggable="false">
+      <div class="ambient" aria-hidden="true"></div>
+    </div>
+  </main>
+  <div class="brand" aria-hidden="true">MAHU</div>
+
+  <script>
+    (() => {
+      const art = document.getElementById('art');
+      const progress = document.getElementById('progress');
+
+      let ticking = false;
+      function update() {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        const p = max > 0 ? scrollY / max : 0;
+        progress.style.width = (p * 100) + '%';
+
+        // Tiny parallax only; the supplied artwork itself remains unchanged.
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          art.style.transform = 'none';
+        } else {
+          art.style.transform = `translate3d(0, ${p * -10}px, 0)`;
+        }
+        ticking = false;
+      }
+
+      addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, {passive:true});
+
+      update();
+    })();
+  </script>
+</body>
+</html>
